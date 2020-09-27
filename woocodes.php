@@ -19,14 +19,35 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
     function wcs_buyevent( $order_id ) {
 
-        if ( ! $order_id )
+        if ( ! $order_id ){
             return;
-
-        // Getting an instance of the order object
+        }
+       
         $order = wc_get_order( $order_id );
+    
+
+        $cat_in_order = false;
+        
+        $items = $order->get_items(); 
+            
+        foreach ( $items as $item ) {      
+            $product_id = $item->get_product_id();  
+            if ( has_term( 'Gift Card Code', 'product_cat', $product_id ) ) {
+                $cat_in_order = true;
+                break;
+            }
+        }
+          
+        if ( $cat_in_order ) {
+                $mail = wc_mail($order->get_billing_email(), 'Your password for the video page', 'pw');
+                if(!$mail){
+                    echo "fehler";
+                }
+        }
+        
 
     }
-    add_action('woocommerce_thankyou', 'wcs_buyevent', 10, 1);
+    add_action('woocommerce_thankyou', 'wcs_buyevent');
 
     function wcs_create_category(){
         wp_insert_term( 
@@ -37,4 +58,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
     register_activation_hook( __FILE__, 'wcs_create_category' );
 }
 
+/*
+Useful Links:
+https://stackoverflow.com/questions/39401393/how-to-get-woocommerce-order-details
+*/
 ?>
