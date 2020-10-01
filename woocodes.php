@@ -2,7 +2,7 @@
 /*
 Plugin Name: WooCodes
 Description: 
-Version: alpha 0.1
+Version: Alpha 1.0
 Author: Nils Steinkamp
 WC requires at least: 2.2
 WC tested up to: 2.3
@@ -18,6 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
 
     function wcs_buyevent( $order_id ) {
+
+        $option = get_option('woocodes');
 
         if ( ! $order_id ){
             return;
@@ -39,9 +41,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
         }
           
         if ( $cat_in_order ) {
-                $mail = wc_mail($order->get_billing_email(), 'Your password for the video page', 'pw');
+                $mail = wc_mail($order->get_billing_email(), 'Your password for the video page', 'As ordered, here is your password for the video page: '.$option['password']);
                 if(!$mail){
-                    echo "fehler";
+                    echo "<p>Es ist ein Fehler aufgetreten</p>";
                 }
         }
         
@@ -49,13 +51,18 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
     }
     add_action('woocommerce_thankyou', 'wcs_buyevent');
 
-    function wcs_create_category(){
-        wp_insert_term( 
+    function wcs_activation(){
+        wp_insert_term(        //Diese ganze Methode kopieren und 'Gift Card Code' mit dem neuen Namen der Kategorie ersetzen
             'Gift Card Code',
             'product_cat'
-        ) ; 
+        ) ;                     //Bis hier kopieren
+
+        add_option('woocodes', array(
+            'password' => 'pass'
+        ));
     }
-    register_activation_hook( __FILE__, 'wcs_create_category' );
+    register_activation_hook( __FILE__, 'wcs_activation' );
+    require_once('admin_menu.php');
 }
 
 /*
