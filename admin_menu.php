@@ -1,7 +1,16 @@
 <?php
 add_action( 'admin_menu', 'wcs_add_admin_menu' );
 add_action( 'admin_init', 'wcs_settings_init' );
+add_action( 'admin_post_wcsadmin_newcat', 'wcs_add_category' );
 
+
+function wcs_add_category(){
+    $options = get_option('woocodes');
+    array_push($options['categories'], $_POST['wcsadmin_newcatname']);
+    update_option('woocodes', $options);
+    wp_insert_term( 'WCS_'.$_POST['wcsadmin_newcatname'], 'product_cat' );
+    wp_redirect( 'admin.php?page=wcs');
+}
 function wcs_category_settings(string $cat_name){
     $cat_namelow = mb_strtolower($cat_name);
     add_settings_section(
@@ -13,11 +22,9 @@ function wcs_category_settings(string $cat_name){
     add_settings_field(
         'password',
         __('Password', 'WooCodes'),
-        function(){;
+        function() use(&$cat_namelow){
             $options = get_option('woocodes');
-            ?>
-            <input type='text' name='woocodes[password_<?php echo $cat_namelow;?>]' value='<?php echo $options['password_'.$cat_namelow];?>'>
-            <?php
+            echo '<input type="text" name="woocodes[password_'.$cat_namelow.']" value="'.$options['password_'.$cat_namelow].'">';
         },
         'woocodes',
         'wcs_'.$cat_namelow
@@ -25,7 +32,7 @@ function wcs_category_settings(string $cat_name){
     add_settings_field(
         'link',
         __('Link', 'WooCodes'),
-        function(){
+        function() use(&$cat_namelow){
             $options = get_option('woocodes');
             ?>
             <input type='text' name='woocodes[link_<?php echo $cat_namelow;?>]' value='<?php echo $options['link_'.$cat_namelow];?>'>
@@ -37,7 +44,7 @@ function wcs_category_settings(string $cat_name){
     add_settings_field(
         'id',
         __('Meeting ID', 'WooCodes'),
-        function(){
+        function() use(&$cat_namelow){
             $options = get_option('woocodes');
             ?>
             <input type='text' name='woocodes[id_<?php echo $cat_namelow;?>]' value='<?php echo $options['id_'.$cat_namelow];?>'>
@@ -49,7 +56,7 @@ function wcs_category_settings(string $cat_name){
     add_settings_field(
         'content',
         __('Content', 'WooCodes'),
-        function(){
+        function() use(&$cat_namelow){
             $options = get_option('woocodes');
             ?>
             <textarea name='woocodes[content_<?php echo $cat_namelow;?>]' rows='4' cols='50'>
@@ -74,25 +81,32 @@ function wcs_add_admin_menu(  ) {
 }
 
 function wcs_settings_init(){
-    register_setting('woocodes','woocodes');
-
-    wcs_category_settings('Default');
-    wcs_category_settings('Advanced');
-}
-function password_render(){
     $options = get_option('woocodes');
-    ?>
-    <input type='text' name='woocodes[password]' value='<?php echo $options['password'];?>'>
-    <?php
+    $categories = $options['categories'];
+    register_setting('woocodes','woocodes');
+    
+    wcs_category_settings('Default');
+    foreach($categories as $cat_name){
+        wcs_category_settings($cat_name);
+    }
+    
 }
 function wcs_options_page(  ) { 
-
+    ?>
+    <form action='admin-post.php' method='POST' style='margin-top:10px;' >
+        <input type='hidden' name='action' value='wcsadmin_newcat'>
+        <input type='text' name='wcsadmin_newcatname' placeholder='Category Name'>
+        <input type='submit' name='wcsadmin_newcatsub' value='Create New Category'>
+    </form>
+    <?php
     ?>
     <form action='options.php' method='post'>
 
         <h1>WooCodes Options</h1>
+        
         <?php
         settings_fields( 'woocodes' );
+        
         do_settings_sections( 'woocodes' );
         submit_button();
         ?>

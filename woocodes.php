@@ -18,33 +18,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
 
     function wcs_buyevent( $order_id ) {
-
-        $option = get_option('woocodes');
-
         if ( ! $order_id ){
             return;
         }
-       
-        $order = wc_get_order( $order_id );
-    
 
-        $cat_in_order = false;
-        
+        $option = get_option('woocodes');
+        $order = wc_get_order( $order_id );
         $items = $order->get_items(); 
-            
+        
+        foreach ($option['categories'] as $cat_name){
+
+        }
         foreach ( $items as $item ) {      
-            $product_id = $item->get_product_id();  
-            if ( has_term( 'Gift Card Code', 'product_cat', $product_id ) ) {
-                $cat_in_order = true;
-                break;
+            foreach ($option['categories'] as $cat_name){
+                $product_id = $item->get_product_id();
+                if ( has_term( 'WCS_'.$cat_name, 'product_cat', $product_id ) ) {
+                    $mail = wc_mail($order->get_billing_email(), 'Your password for the zoom meeting', str_replace(
+                        array('wcs_pw', 'wcs_link', 'wcs_id'),
+                        array($option['password_'.mb_strtolower($cat_name)], $option['link_'.mb_strtolower($cat_name)], $option['id_'.mb_strtolower($cat_name)]),
+                        $option['content_'.mb_strtolower($cat_name)]));
+                    if(!$mail){
+                        echo "<p>Es ist ein Fehler aufgetreten</p>";
+                    }
+                }
             }
         }
           
         if ( $cat_in_order ) {
-                $mail = wc_mail($order->get_billing_email(), 'Your password for the video page', 'As ordered, here is your password for the video page: '.$option['password']);
-                if(!$mail){
-                    echo "<p>Es ist ein Fehler aufgetreten</p>";
-                }
+                
         }
         
 
@@ -52,14 +53,15 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
     add_action('woocommerce_thankyou', 'wcs_buyevent');
 
     function wcs_activation(){
-        wp_insert_term(        //Diese ganze Methode kopieren und 'Gift Card Code' mit dem neuen Namen der Kategorie ersetzen
-            'Gift Card Code',
-            'product_cat'
-        ) ;                     //Bis hier kopieren
-
-        add_option('woocodes', array(
-            'password' => 'pass'
+        add_option('woocodes', array());
+        update_option( 'woocodes', array(
+            'categories' => array()
         ));
+        
+        wp_insert_term(  
+            'WCS_Default',
+            'product_cat'
+        ) ;  
     }
     register_activation_hook( __FILE__, 'wcs_activation' );
     require_once('admin_menu.php');
