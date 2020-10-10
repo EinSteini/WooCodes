@@ -5,9 +5,10 @@ add_action( 'admin_post_wcsadmin_newcat', 'wcs_add_category' );
 
 
 function wcs_add_category(){
-    $options = get_option('woocodes');
-    array_push($options['categories'], $_POST['wcsadmin_newcatname']);
-    update_option('woocodes', $options);
+    $categories = get_option('woocodes_categories');
+    array_push($categories, $_POST['wcsadmin_newcatname']);
+    print_r($categories);
+    update_option('woocodes_categories', $categories);
     wp_insert_term( 'WCS_'.$_POST['wcsadmin_newcatname'], 'product_cat' );
     wp_redirect( 'admin.php?page=wcs');
 }
@@ -73,7 +74,6 @@ function wcs_category_settings(string $cat_name){
         'woocodes',
         'wcs_'.$cat_namelow
     );
-    
 }
 
 function wcs_add_admin_menu(  ) { 
@@ -82,11 +82,19 @@ function wcs_add_admin_menu(  ) {
 
 function wcs_settings_init(){
     $options = get_option('woocodes');
-    $categories = $options['categories'];
+    $categories = get_option( 'woocodes_categories' );
+    print_r('extraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'.$options.$categories);
+    if(isset($categories)){
+        echo 'passt';
+    }else{
+        echo 'passtnicht';
+    }
     register_setting('woocodes','woocodes');
     
-    wcs_category_settings('Default');
+    //wcs_category_settings('Default');
+    
     foreach($categories as $cat_name){
+        echo $cat_name;
         wcs_category_settings($cat_name);
     }
     
