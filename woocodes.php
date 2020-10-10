@@ -23,15 +23,14 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
         }
 
         $option = get_option('woocodes');
+        $categories = get_option('woocodes_categories');
         $order = wc_get_order( $order_id );
         $items = $order->get_items(); 
-        
-        foreach ($option['categories'] as $cat_name){
 
-        }
         foreach ( $items as $item ) {      
-            foreach ($option['categories'] as $cat_name){
+            foreach ($categories as $cat_name){
                 $product_id = $item->get_product_id();
+
                 if ( has_term( 'WCS_'.$cat_name, 'product_cat', $product_id ) ) {
                     $mail = wc_mail($order->get_billing_email(), 'Your password for the zoom meeting', str_replace(
                         array('wcs_pw', 'wcs_link', 'wcs_id'),
@@ -42,22 +41,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                     }
                 }
             }
-        }
-          
-        if ( $cat_in_order ) {
-                
-        }
-        
-
+        }       
     }
     add_action('woocommerce_thankyou', 'wcs_buyevent');
 
     function wcs_activation(){
-        add_option('woocodes', array());
-        update_option( 'woocodes', array(
-            'categories' => array()
-        ));
-        
+        update_option( 'woocodes', array());
+        update_option( 'woocodes_categories', array('Default'));
         wp_insert_term(  
             'WCS_Default',
             'product_cat'
