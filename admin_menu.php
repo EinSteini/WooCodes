@@ -1,14 +1,29 @@
 <?php
 add_action( 'admin_menu', 'wcs_add_admin_menu' );
 add_action( 'admin_init', 'wcs_settings_init' );
-add_action( 'admin_post_wcsadmin_newcat', 'wcs_add_category' );
+add_action( 'admin_post_wcsadmin_newcat', 'wcs_post' );
 
-
+function wcs_post(){
+    if(isset($_POST['wcsadmin_newcatsub'])){
+        wcs_add_category();
+    }elseif(isset($_POST['wcsadmin_deletecat'])){
+        wcs_delete_category();
+    }
+}
 function wcs_add_category(){
     $categories = get_option('woocodes_categories');
     array_push($categories, $_POST['wcsadmin_newcatname']);
     update_option('woocodes_categories', $categories);
     wp_insert_term( 'WCS_'.$_POST['wcsadmin_newcatname'], 'product_cat' );
+    wp_redirect( 'admin.php?page=wcs');
+}
+function wcs_delete_category(){
+    $categories = get_option('woocodes_categories');
+    if (($key = array_search($_POST['wcsadmin_newcatname'], $categories)) !== false) {
+        unset($categories[$key]);
+        wp_delete_term( get_term_by('name', $_POST['wcsadmin_newcatname'], 'product_cat')->term_id, 'product_cat', array() );
+    }
+    update_option('woocodes_categories', $categories);
     wp_redirect( 'admin.php?page=wcs');
 }
 function wcs_category_settings(string $cat_name){
@@ -95,6 +110,7 @@ function wcs_options_page(  ) {
         <input type='hidden' name='action' value='wcsadmin_newcat'>
         <input type='text' name='wcsadmin_newcatname' placeholder='Category Name'>
         <input type='submit' name='wcsadmin_newcatsub' value='Create New Category'>
+        <input type='submit' name='wcsadmin_deletecat' value='Delete Category'>
     </form>
     <?php
     ?>
