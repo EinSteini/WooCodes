@@ -21,7 +21,7 @@ function wcs_delete_category(){
     $categories = get_option('woocodes_categories');
     if (($key = array_search($_POST['wcsadmin_newcatname'], $categories)) !== false) {
         unset($categories[$key]);
-        wp_delete_term( get_term_by('name', $_POST['wcsadmin_newcatname'], 'product_cat')->term_id, 'product_cat', array() );
+        wp_delete_term( get_term_by('name', 'WCS_'.$_POST['wcsadmin_newcatname'], 'product_cat')->term_id, 'product_cat', array() );
     }
     update_option('woocodes_categories', $categories);
     wp_redirect( 'admin.php?page=wcs');
